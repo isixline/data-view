@@ -8,17 +8,11 @@ function RelationGraph() {
         fetchData();
     }, []);
 
-    const getCategories = (nodes) => {
-        const categories = new Set(nodes.map(node => node.category));
-        return Array.from(categories).map(category => ({ name: category }));
-    }
-
     const buildNode = (node) => {
         return {
             id: node.name,
             name: node.name,
             category: node.category,
-            symbolSize: 5,
             value: node.content
         };
     }
@@ -57,7 +51,7 @@ function RelationGraph() {
             const dataFilePath = process.env.REACT_APP_GRAPH_DATA_FILE_PATH;
             const response = await fetch(dataFilePath);
             const jsonData = await response.json();
-            const categories = getCategories(jsonData.nodes);
+            const categories = jsonData.categories.map(category => ({ name: category }))
             const nodes = []
             const links = []
             for (let i = 0; i < jsonData.nodes.length; i++) {
