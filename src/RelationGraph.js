@@ -1,12 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import ReactEcharts from 'echarts-for-react';
 
 function RelationGraph() {
     const [graph, setGraph] = useState({ nodes: [], links: [], categories: [] });
-
-    useEffect(() => {
-        fetchData();
-    }, []);
 
     const buildNode = (node) => {
         return {
@@ -37,6 +33,23 @@ function RelationGraph() {
         return links;
     }
 
+    const buildGraph = (data) => {
+        const categories = data.categories.map(category => ({ name: category }))
+        const nodes = []
+        const links = []
+        for (let i = 0; i < data.nodes.length; i++) {
+            nodes.push(buildNode(data.nodes[i]));
+            links.push(...buildLinks(data.nodes[i]));
+        }
+
+        nodes.forEach(node => {
+            setNodeCategory(node, categories);
+            setNodeSize(node, links);
+        });
+
+        return { nodes, links, categories };
+    }
+
     const setNodeCategory = (node, categories) => {
         node.category = categories.findIndex(category => category.name === node.category)
     }
@@ -51,20 +64,7 @@ function RelationGraph() {
             const dataFilePath = process.env.REACT_APP_GRAPH_DATA_FILE_PATH;
             const response = await fetch(dataFilePath);
             const jsonData = await response.json();
-            const categories = jsonData.categories.map(category => ({ name: category }))
-            const nodes = []
-            const links = []
-            for (let i = 0; i < jsonData.nodes.length; i++) {
-                nodes.push(buildNode(jsonData.nodes[i]));
-                links.push(...buildLinks(jsonData.nodes[i]));
-            }
-
-            nodes.forEach(node => {
-                setNodeCategory(node, categories);
-                setNodeSize(node, links);
-            });
-
-            setGraph({ nodes, links, categories });
+            setGraph(buildGraph(jsonData));
         } catch (error) {
             console.error('Error fetching data: ', error);
         }
@@ -74,15 +74,12 @@ function RelationGraph() {
         return params.name + '<br> ' + (params.value ? params.value.replace(/\n/g, "<br>") : '');
     }
 
-    const getOption = () => {
-        console.log(graph);
-        return {
+    const option = {
             legend: {
                 data: graph.categories.map(function (a) {
                     return a.name;
                 })
             },
-            tooltip: {},
             series: [
                 {
                     type: 'graph',
@@ -106,12 +103,12 @@ function RelationGraph() {
                 }
             ]
         };
-    };
 
     return (
         <div style={{ height: '800px' }}>
+            <button onClick={fetchData}>fetch data</button>
             <ReactEcharts
-                option={getOption()}
+                option={option}
                 style={{ height: '100%', width: '100%' }}
             />
         </div>
