@@ -142,7 +142,6 @@ function RelationGraph() {
             const sourceStyle = nodeItemStyleMap[link.source]
             const targetStyle = nodeItemStyleMap[link.target]
 
-            console.log(sourceStyle, targetStyle)
             if (sourceStyle && targetStyle && sourceStyle["opacity"] && targetStyle["opacity"]) {
                 link.lineStyle = { opacity: Math.min(sourceStyle["opacity"], targetStyle["opacity"]) };
             }
