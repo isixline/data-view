@@ -98,7 +98,7 @@ function RelationGraph() {
                 {
                     type: 'graph',
                     layout: 'force',
-                    data: graph.nodes.filter(node => !node.hidden),
+                    data: graph.nodes,
                     links: graph.links,
                     categories: graph.categories,
                     animation: true,
@@ -124,12 +124,38 @@ function RelationGraph() {
         setSearchTerm(event.target.value);
     };
 
+    const showNode = (node) => {
+        node.itemStyle = { opacity: 1 };
+    }
+
+    const hideNode = (node) => {
+        node.itemStyle = { opacity: 0.1 };
+    }
+
+    const handleLinksFlowNodeStyle = (nodes, links) => {
+        const nodeItemStyleMap = nodes.reduce((acc, node) => {
+            acc[node.id] = node.itemStyle;
+            return acc;
+        }, {});
+
+        for (const link of links) {
+            const sourceStyle = nodeItemStyleMap[link.source]
+            const targetStyle = nodeItemStyleMap[link.target]
+
+            console.log(sourceStyle, targetStyle)
+            if (sourceStyle && targetStyle && sourceStyle["opacity"] && targetStyle["opacity"]) {
+                link.lineStyle = { opacity: Math.min(sourceStyle["opacity"], targetStyle["opacity"]) };
+            }
+        }
+    }
+
     const handleFormSubmit = (event) => {
         event.preventDefault();
         if (searchTerm === '') {
             for (const node of graph.nodes) {
-                node.hidden = false;
+                showNode(node);
             }
+            handleLinksFlowNodeStyle(graph.nodes, graph.links);
             setGraph({ ...graph });
             return;
         }
@@ -146,17 +172,18 @@ function RelationGraph() {
         }
 
         for (const node of graph.nodes) {
-            node.hidden = true;
+            hideNode(node);
             for (let i = 0; i < matchWith.length; i++) {
                 const key = Object.keys(matchWith[i])[0];
                 const regex = new RegExp(matchWith[i][key].trim());
                 if (node[key] && regex.test(node[key].toLocaleLowerCase())) {
-                    node.hidden = false;
+                    showNode(node);
                     break;
                 }
             }
         }
 
+        handleLinksFlowNodeStyle(graph.nodes, graph.links);
         setGraph({ ...graph });
     };
 
