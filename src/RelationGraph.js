@@ -93,6 +93,7 @@ function RelationGraph() {
                 }),
                 selected: selectedCategories,
             },
+            tooltip: {},
             series: [
                 {
                     type: 'graph',
