@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import ReactEcharts from 'echarts-for-react';
+import './RelationGraph.css';
 
 function RelationGraph() {
     const [graph, setGraph] = useState({ nodes: [], links: [], categories: [], workspaces: [] });
     const [selectedCategories, setSelectedCategories] = useState({});
+    const [searchTerm, setSearchTerm] = useState('');
 
     const buildNode = (node) => {
         return {
             id: node.name,
             name: node.name,
             category: node.category,
-            value: node.content
+            value: node.content,
         };
     }
 
@@ -48,7 +50,7 @@ function RelationGraph() {
             setNodeSize(node, links);
         });
 
-        return { nodes, links, categories, workspaces: data.workspaces};
+        return { nodes, links, categories, workspaces: data.workspaces };
     }
 
     const setNodeCategory = (node, categories) => {
@@ -95,7 +97,7 @@ function RelationGraph() {
                 {
                     type: 'graph',
                     layout: 'force',
-                    data: graph.nodes,
+                    data: graph.nodes.filter(node => !node.hidden),
                     links: graph.links,
                     categories: graph.categories,
                     animation: true,
@@ -116,12 +118,67 @@ function RelationGraph() {
         };
     }
 
+
+    const handleInputChange = (event) => {
+        setSearchTerm(event.target.value);
+    };
+
+    const handleFormSubmit = (event) => {
+        event.preventDefault();
+        if (searchTerm === '') {
+            for (const node of graph.nodes) {
+                node.hidden = false;
+            }
+            setGraph({ ...graph });
+            return;
+        }
+
+        const searchContent = searchTerm.toLocaleLowerCase();
+        const matchWith = []
+        if (searchContent.startsWith('name:')) {
+            matchWith.push({ "name": searchContent.substring(5) });
+        } else if (searchContent.startsWith('value:')) {
+            matchWith.push({ "value": searchContent.substring(8) });
+        } else {
+            matchWith.push({ "name": searchContent });
+            matchWith.push({ "value": searchContent });
+        }
+
+        for (const node of graph.nodes) {
+            node.hidden = true;
+            for (let i = 0; i < matchWith.length; i++) {
+                const key = Object.keys(matchWith[i])[0];
+                const regex = new RegExp(matchWith[i][key].trim());
+                if (node[key] && regex.test(node[key].toLocaleLowerCase())) {
+                    node.hidden = false;
+                    break;
+                }
+            }
+        }
+
+        setGraph({ ...graph });
+    };
+
     return (
         <div style={{ height: '800px' }}>
-            <button onClick={fetchData}>🔄</button>
-            {graph.workspaces.map(workspace => (
-                <button key={workspace.name} onClick={() => workspaceView(workspace)}>{workspace.name}</button>
-            ))}
+            <div className='operating-area'>
+                <button onClick={fetchData}>🔄</button>
+                <div className='workspace-area'>
+                    {graph.workspaces.map(workspace => (
+                        <button key={workspace.name} onClick={() => workspaceView(workspace)}>{workspace.name}</button>
+                    ))}
+                </div>
+                <div>
+                    <form onSubmit={handleFormSubmit}>
+                        <input
+                            type="text"
+                            id="search"
+                            value={searchTerm}
+                            onChange={handleInputChange}
+                        />
+                    </form>
+                </div>
+            </div>
             <ReactEcharts
                 option={buildOption()}
                 style={{ height: '100%', width: '100%' }}
