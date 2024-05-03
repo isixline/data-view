@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import ReactEcharts from 'echarts-for-react';
 
 function RelationGraph() {
-    const [graph, setGraph] = useState({ nodes: [], links: [], categories: [] });
+    const [graph, setGraph] = useState({ nodes: [], links: [], categories: [], workspaces: [] });
+    const [selectedCategories, setSelectedCategories] = useState({});
 
     const buildNode = (node) => {
         return {
@@ -47,7 +48,7 @@ function RelationGraph() {
             setNodeSize(node, links);
         });
 
-        return { nodes, links, categories };
+        return { nodes, links, categories, workspaces: data.workspaces};
     }
 
     const setNodeCategory = (node, categories) => {
@@ -74,11 +75,21 @@ function RelationGraph() {
         return params.name + '<br> ' + (params.value ? params.value.replace(/\n/g, "<br>") : '');
     }
 
-    const option = {
+    const workspaceView = (workspace) => {
+        const newSelectedCategories = {};
+        graph.categories.forEach(category => {
+            newSelectedCategories[category.name] = workspace.categories.includes(category.name);
+        });
+        setSelectedCategories(newSelectedCategories);
+    }
+
+    const buildOption = () => {
+        return {
             legend: {
                 data: graph.categories.map(function (a) {
                     return a.name;
-                })
+                }),
+                selected: selectedCategories,
             },
             series: [
                 {
@@ -103,12 +114,16 @@ function RelationGraph() {
                 }
             ]
         };
+    }
 
     return (
         <div style={{ height: '800px' }}>
-            <button onClick={fetchData}>fetch data</button>
+            <button onClick={fetchData}>🔄</button>
+            {graph.workspaces.map(workspace => (
+                <button key={workspace.name} onClick={() => workspaceView(workspace)}>{workspace.name}</button>
+            ))}
             <ReactEcharts
-                option={option}
+                option={buildOption()}
                 style={{ height: '100%', width: '100%' }}
             />
         </div>
