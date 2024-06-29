@@ -186,6 +186,17 @@ function RelationGraph() {
         setGraph({ ...graph });
     };
 
+    const handleNodeClick = (e) => {
+        if (e.componentType === 'series') {
+            const nodeText = e.name;
+            navigator.clipboard.writeText(nodeText).then(() => {
+                console.log('选中节点：' + nodeText);
+            }).catch((err) => {
+                alert('节点文本无法复制' + err);
+            });
+        }
+    };
+
     return (
         <div style={{ height: '800px' }}>
             <div className='operating-area'>
@@ -208,6 +219,9 @@ function RelationGraph() {
             </div>
             <ReactEcharts
                 option={buildOption()}
+                onEvents={{
+                    dblclick: handleNodeClick
+                  }}
                 style={{ height: '100%', width: '100%' }}
             />
         </div>
