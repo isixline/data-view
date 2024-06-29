@@ -5,8 +5,6 @@ import './RelationGraph.css';
 function RelationGraph() {
     const [graph, setGraph] = useState({ nodes: [], links: [], categories: [], workspaces: [] });
     const [selectedCategories, setSelectedCategories] = useState({});
-    const [searchTerm, setSearchTerm] = useState('');
-
     const buildNode = (node) => {
         return {
             id: node.name,
@@ -119,11 +117,6 @@ function RelationGraph() {
         };
     }
 
-
-    const handleInputChange = (event) => {
-        setSearchTerm(event.target.value);
-    };
-
     const showNode = (node) => {
         node.itemStyle = { opacity: 1 };
     }
@@ -150,6 +143,8 @@ function RelationGraph() {
 
     const handleFormSubmit = (event) => {
         event.preventDefault();
+        const searchTerm = document.getElementById('search').value;
+        console.log('搜索节点：' + searchTerm)
         if (searchTerm === '') {
             for (const node of graph.nodes) {
                 showNode(node);
@@ -211,8 +206,6 @@ function RelationGraph() {
                         <input
                             type="text"
                             id="search"
-                            value={searchTerm}
-                            onChange={handleInputChange}
                         />
                     </form>
                 </div>
@@ -220,8 +213,8 @@ function RelationGraph() {
             <ReactEcharts
                 option={buildOption()}
                 onEvents={{
-                    dblclick: handleNodeClick
-                  }}
+                    'dblclick': handleNodeClick
+                }}
                 style={{ height: '100%', width: '100%' }}
             />
         </div>
